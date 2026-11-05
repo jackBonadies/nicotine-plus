@@ -591,7 +591,14 @@ class NetworkThread(Thread):
             msgs=init.outgoing_msgs[:], is_offline=False
         )
         init.outgoing_msgs.clear()
-        self._username_init_msgs.pop(username + conn_type, None)
+        init_key = username + conn_type
+        if self._username_init_msgs.get(init_key) is init:
+            log.add_conn("Indirect connect request of type %s to user %s with "
+                        "token %s was thrown away", (conn_type, username, token))
+            del self._username_init_msgs[init_key]
+        else:
+            log.add_conn("Indirect connect request of type %s to user %s with "
+                        "token %s was superceded. Keep the existing connection.", (conn_type, username, token))
 
     def _check_indirect_request_timeouts(self, current_time=None, expire_all=False):
 
